@@ -1,11 +1,10 @@
 import multer from "multer";
-import { nanoid } from "nanoid";
 import AppError from "./appErrors.js";
 import validExtensions from "./validExtention.js";
 
 const multerCloudnairy = (customValidation) => {
   if (!customValidation) {
-    customValidation = validExtensions.image;
+    customValidation = validExtensions.pdf;
   }
 
   const storage = multer.diskStorage({});

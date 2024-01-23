@@ -1,13 +1,17 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve("config/.env") });
 
 const dbConnection = async () => {
-  try {
-    await mongoose
-      .connect(process.env.DB);
-    console.log("Database connection established");
-  } catch (err) {
-    console.log("Error connecting to Database: " + err.message);
-  }
+  await mongoose
+    .connect(process.env.DB)
+    .then(() => {
+      console.log(`Database connection established`);
+    })
+    .catch((err) => {
+      console.log(`error in connecting db ${err}`);
+    });
 };
 
 export default dbConnection;

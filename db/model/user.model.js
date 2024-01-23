@@ -1,4 +1,4 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
   firstName: {
@@ -26,5 +26,22 @@ const userSchema = new Schema({
   },
   recoveryEmail: String,
   DOB: Date,
-  
+  mobile: {
+    type: Number,
+    unique: true,
+  },
+  role: {
+    type: String,
+    enum: ["User", "Company_HR"],
+    default: "User",
+  },
+  status: {
+    type: String,
+    enum: ["Online", "Offline"],
+    default: "Offline",
+  },
 });
+
+const userModel = model("user", userSchema);
+
+export default userModel;
