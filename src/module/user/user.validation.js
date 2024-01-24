@@ -1,29 +1,47 @@
-import joi from "joi";
+import Joi from "joi";
 
 export const signUp = {
-  body: joi
-    .object()
+  body: Joi.object()
     .required()
     .keys({
-      name: joi.string().required().min(2).max(15),
-      email: joi.string().required().email(),
-      gender: joi.string().valid("male", "female").required(),
-      password: joi.string().required(),
+      firstName: Joi.string().required().min(2).max(15),
+      lastName: Joi.string().required().min(2).max(15),
+      email: Joi.string().email().required(),
+      password: Joi.string().min(6).required(),
+      mobile: Joi.number().integer().positive(),
+      DOB: Joi.date(),
     }),
 };
 
-export const updateUser = {
-  body: joi.object().keys({
-    name: joi.string().min(2).max(15),
-    email: joi.string().email(),
-    gender: joi.string().valid("male", "female"),
-  }),
+export const signIn = {
+  body: Joi.object()
+    .required()
+    .keys({
+      email: Joi.string().email().required(),
+      password: Joi.string().min(6).required(),
+      mobile: Joi.number().integer().positive(),
+    }),
+};
+
+export const update = {
+  body: Joi.object()
+    .required()
+    .keys({
+      firstName: Joi.string().required().min(2).max(15),
+      lastName: Joi.string().required().min(2).max(15),
+      email: Joi.string().email().required(),
+      recoveryEmail: Joi.string().email().required(),
+      password: Joi.string().min(6).required(),
+      mobile: Joi.number().integer().positive(),
+    }),
 };
 
 export const updatePassword = {
-  body: joi.object().keys({
-    oldPassword: joi.string().required(),
-    newPassword: joi.string().required(),
-    // rePassword: joi.string().required().valid({ ref: "newPassword" }),
-  }),
+  body: Joi.object()
+    .required()
+    .keys({
+      oldPassword: Joi.string().min(6).required(),
+      newPassword: Joi.string().min(6).required(),
+      rePassword: Joi.string().valid(Joi.ref("newPassword")).required(),
+    }),
 };

@@ -4,15 +4,19 @@ const userSchema = new Schema({
   firstName: {
     type: String,
     required: true,
+    minLength: 2,
+    maxLength: 15,
   },
   lastName: {
     type: String,
     required: true,
+    minLength: 2,
+    maxLength: 15,
   },
   userName: {
     type: String,
     default: function () {
-      return this.firstName + this.lastName;
+      return this.firstName + " " + this.lastName;
     },
   },
   email: {
@@ -23,12 +27,14 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: true,
+    minLength: 6,
   },
   recoveryEmail: String,
   DOB: Date,
   mobile: {
     type: Number,
     unique: true,
+    // sparse: true,
   },
   role: {
     type: String,
@@ -40,6 +46,8 @@ const userSchema = new Schema({
     enum: ["Online", "Offline"],
     default: "Offline",
   },
+  passwordResetOTP: String,
+  passwordResetExpiry: Date,
 });
 
 const userModel = model("user", userSchema);
