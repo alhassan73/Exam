@@ -5,11 +5,11 @@ import AppError from "./appErrors.js";
 import fs from "fs";
 import validExtensions from "./validExtention.js";
 
-const multerLocal = (customValidation, customPatch) => {
-  if (!customPatch) {
-    customPatch = "General";
+const multerLocal = (customValidation, customDir) => {
+  if (!customDir) {
+    customDir = "General";
   }
-  const destPath = path.resolve(`uploads/${customPatch}`);
+  const destPath = path.resolve(`uploads/${customDir}`);
 
   if (!customValidation) {
     customValidation = validExtensions.image;

@@ -1,7 +1,7 @@
-class AppError extends Error {
-  constructor(message, statucCode) {
+export default class AppError extends Error {
+  constructor(message, statusCode) {
     super(message);
-    this.statusCode = statucCode;
+    this.statusCode = statusCode;
   }
 }
 
@@ -12,27 +12,11 @@ export const asyncHandler = (fn) => {
     });
   };
 };
-
-export const globalErrorHandler = (err, req, res, next) => {
-  if (process.env.MODE === "development") {
-    developmentMode(err, req, res, next);
-  } else {
-    productionMode(err, req, res, next);
-  }
+export const globalErrorHandling = (err, req, res, next) => {
+  const status = err.statusCode || 500;
+  return res.status(status).json({
+    error: err.message,
+    status,
+    ...(process.env.MODE === "dev" ? { stack: err.stack } : {}),
+  });
 };
-
-const developmentMode = (err, req, res, next) => {
-  let statucCode = err.statusCode || 500;
-  return res.json({ status: statucCode, error: err.message, Stack: err.stack });
-};
-
-const productionMode = (err, req, res, next) => {
-  let statucCode = err.statusCode || 500;
-  return res.json({ status: statucCode, error: err.message });
-};
-
-export const routingError = (req, res, next) => {
-  return next(new AppError(`Invalid Url ${req.originalUrl} `));
-};
-
-export default AppError;

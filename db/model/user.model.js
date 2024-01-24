@@ -11,8 +11,13 @@ const userSchema = new Schema({
   },
   userName: {
     type: String,
-    default: function () {
-      return this.firstName + this.lastName;
+    get: function () {
+      return `${this.firstName} ${this.lastName}`;
+    },
+    set: function (userName) {
+      const [firstName, ...lastName] = userName.split(" ");
+      this.firstName = firstName;
+      this.lastName = lastName.join(" ");
     },
   },
   email: {
@@ -27,7 +32,8 @@ const userSchema = new Schema({
   recoveryEmail: String,
   DOB: Date,
   mobile: {
-    type: Number,
+    type: String,
+    match: /^(\+201|01|00201)[0-2,5]{1}[0-9]{8}/,
     unique: true,
   },
   role: {

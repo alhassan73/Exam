@@ -5,10 +5,21 @@ export const signUp = {
     .object()
     .required()
     .keys({
-      name: joi.string().required().min(2).max(15),
+      firstName: joi.string().required().min(2).max(15),
+      lastName: joi.string().required().min(2).max(15),
       email: joi.string().required().email(),
-      gender: joi.string().valid("male", "female").required(),
       password: joi.string().required(),
+      mobile: joi.string().regex(/^(\+201|01|00201)[0-2,5]{1}[0-9]{8}/),
+    }),
+};
+export const signIn = {
+  body: joi
+    .object()
+    .required()
+    .keys({
+      email: joi.string().required().email(),
+      password: joi.string().required(),
+      mobile: joi.string().regex(/^(\+201|01|00201)[0-2,5]{1}[0-9]{8}/),
     }),
 };
 
@@ -24,6 +35,6 @@ export const updatePassword = {
   body: joi.object().keys({
     oldPassword: joi.string().required(),
     newPassword: joi.string().required(),
-    // rePassword: joi.string().required().valid({ ref: "newPassword" }),
+    rePassword: joi.string().required().valid({ ref: "newPassword" }),
   }),
 };
