@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
-
-const jobsSchema = new Schema({
+const jobSchema = new Schema({
   jobTitle: {
     type: String,
     required: true,
@@ -28,7 +27,5 @@ const jobsSchema = new Schema({
     ref: "company",
   },
 });
-
-const jobsModel = model("jobs", jobsSchema);
-
-export default jobsModel;
+const jobModel = model("job", jobSchema);
+export default jobModel;

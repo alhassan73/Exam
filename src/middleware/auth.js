@@ -1,5 +1,4 @@
 import userModel from "../../db/model/user.model.js";
-import AppError from "../utils/appErrors.js";
 import jwt from "jsonwebtoken";
 
 export const validRoles = {
