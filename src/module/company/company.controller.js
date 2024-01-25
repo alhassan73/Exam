@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import companyModel from "../../../db/model/company.model.js";
 import userModel from "../../../db/model/user.model.js";
 import AppError, { asyncHandler } from "../../utils/appErrors.js";
@@ -95,10 +96,22 @@ export const deleteCompany = asyncHandler(async (req, res, next) => {
 /* -------------------------------------------------------------------------- */
 export const getCompany = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const company = await companyModel.findOne({
-    _id: id,
-    companyHR: req.user._id,
-  });
+  const company = await companyModel.aggregate([
+    {
+      $lookup: {
+        from: "jobs",
+        foreignField: "addedBy",
+        localField: "_id",
+        as: "jobs",
+      },
+    },
+    {
+      $match: {
+        _id: new Types.ObjectId(id),
+        companyHR: req.user._id,
+      },
+    },
+  ]);
   if (!company) {
     return next(new AppError("Company not found", 404));
   }

@@ -3,6 +3,8 @@ import * as JC from "./jobs.controller.js";
 import * as JV from "./jobs.validation.js";
 import validate from "../../middleware/validtion.js";
 import auth, { validRoles } from "../../middleware/auth.js";
+import multerCloudnairy from "../../utils/multerCloudnairy.js";
+import validExtensions from "../../utils/validExtention.js";
 const router = Router();
 
 router.post(
@@ -37,6 +39,18 @@ router.get(
   "/filteredJobs",
   auth([...validRoles.HR, ...validRoles.User]),
   JC.filteredJobs
+);
+router.post(
+  "/applyJob/:jobId",
+  auth(validRoles.User),
+  validate(JV.applyJob),
+  multerCloudnairy(validExtensions.pdf).single("userResume"),
+  JC.applyJob
+);
+router.get(
+  "/getCompanyApplicationsExcel/:companyId",
+  auth([...validRoles.HR, ...validRoles.User]),
+  JC.getCompanyApplicationsExcel
 );
 
 export default router;

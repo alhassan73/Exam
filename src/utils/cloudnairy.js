@@ -1,9 +1,12 @@
 import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve("config/.env") });
 
 cloudinary.config({
-  cloud_name: "doghikxfw",
-  api_key: "577428956699316",
-  api_secret: "2trKmA_UCc8-nSc3MFHe3uPfMt0",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: +process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
 });
 
 export default cloudinary;

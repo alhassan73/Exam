@@ -36,3 +36,9 @@ export const deleteJob = {
     jobId: generalField.id.required(),
   }),
 };
+export const applyJob = {
+  params: joi.object().keys({
+    jobId: generalField.id.required(),
+  }),
+  file: generalField.file,
+};

@@ -1,8 +1,14 @@
+import applicationModel from "../../../db/model/application.model.js";
 import companyModel from "../../../db/model/company.model.js";
 import jobModel from "../../../db/model/job.model.js";
 import AppError, { asyncHandler } from "../../utils/appErrors.js";
+import path from "path";
+import fs from "fs";
+import json2xls from "json2xls";
+import cloudinary from "../../utils/cloudnairy.js";
+import { nanoid } from "nanoid";
 /* -------------------------------------------------------------------------- */
-/*                                   addJob                                   */
+/*                       add Job  according to authority                      */
 /* -------------------------------------------------------------------------- */
 export const addJob = asyncHandler(async (req, res, next) => {
   const { companyId } = req.params;
@@ -128,9 +134,9 @@ export const filteredJobs = asyncHandler(async (req, res, next) => {
   const {
     workingTime,
     jobLocation,
-    seniorityLevel,
-    jobTitle,
-    technicalSkills,
+    // seniorityLevel,
+    // jobTitle,
+    // technicalSkills,
   } = req.body;
   const jobs = await jobModel.aggregate([
     {
@@ -150,3 +156,74 @@ export const filteredJobs = asyncHandler(async (req, res, next) => {
       })
     : next(new AppError("No Jobs Found match this filters", 404));
 });
+/* -------------------------------------------------------------------------- */
+/*             This API will add a new document in the application            */
+/* -------------------------------------------------------------------------- */
+export const applyJob = asyncHandler(async (req, res, next) => {
+  const { jobId } = req.params;
+  const { userTechSkills, userSoftSkills } = req.body;
+  const job = await jobModel.findById(jobId);
+  if (!job) {
+    return next(new AppError("job not found", 404));
+  }
+  const exists = await applicationModel.findOne({
+    jobId,
+    userId: req.user._id,
+  });
+  if (exists) {
+    return next(new AppError("You Applied already to this job", 404));
+  }
+  if (!req.file) {
+    return next(new AppError("Resume is required", 400));
+  }
+  const { secure_url, public_id } = await cloudinary.uploader.upload(
+    req.file.path,
+    {
+      folder: "resumes",
+    }
+  );
+  const application = await applicationModel.create({
+    jobId,
+    userId: req.user._id,
+    userSoftSkills,
+    userTechSkills,
+    userResume: secure_url,
+  });
+  if (!application) {
+    await cloudinary.uploader.destroy(public_id);
+    return next(new AppError("failed to add your application", 400));
+  }
+  return res.status(200).json({ message: "done", application });
+});
+/* -------------------------------------------------------------------------- */
+/*                         getCompanyApplicationsExcel                        */
+/* -------------------------------------------------------------------------- */
+export const getCompanyApplicationsExcel = asyncHandler(
+  async (req, res, next) => {
+    const { companyId } = req.params;
+    const { date } = req.body;
+    const searchDate = new Date(date);
+    const jobs = await jobModel.find({ addedBy: companyId });
+    const jobIds = jobs.map((job) => job._id);
+    const applications = await applicationModel.find({
+      jobId: { $in: jobIds },
+      createdAt: {
+        $gte: searchDate,
+        $lt: new Date(searchDate.getTime() + 24 * 60 * 60 * 1000),
+      },
+    });
+    if (!applications || applications.length === 0) {
+      return next(new AppError("No applications found", 404));
+    }
+    // Convert applications data to Excel
+    const xls = json2xls(applications);
+    const destpath = path.resolve(`uploads/`);
+    if (!fs.existsSync(destpath)) {
+      fs.mkdirSync(destpath, { recursive: true });
+    }
+    // Define the file path where you want to save the Excel file locally
+    const filePath = path.join(destpath, `Application${nanoid(6)}.xlsx`);
+    fs.writeFileSync(filePath, xls, "binary");
+    res.json({ message: "Excel file saved locally", filePath });
+  }
+);

@@ -1,24 +1,21 @@
 import multer from "multer";
-import AppError from "./appErrors.js";
 import validExtensions from "./validExtention.js";
+import AppError from "./appErrors.js";
 
-const multerCloudnairy = (customValidation) => {
-  if (!customValidation) {
-    customValidation = validExtensions.pdf;
+const multerCloudinary = (fileTypes) => {
+  if (!fileTypes) {
+    fileTypes = validExtensions.pdf;
   }
-
   const storage = multer.diskStorage({});
-
   const fileFilter = (req, file, cb) => {
-    if (customValidation.includes(file.mimetype)) {
+    if (fileTypes.includes(file.mimetype)) {
       return cb(null, true);
+    } else {
+      return cb(new AppError("invalid file Type"), false);
     }
-
-    cb(new AppError("Ivalid Type"), false);
   };
-
   const upload = multer({ fileFilter, storage });
   return upload;
 };
 
-export default multerCloudnairy;
+export default multerCloudinary;
