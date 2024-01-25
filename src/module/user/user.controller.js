@@ -7,8 +7,16 @@ import crypto from "crypto";
 /*                                   signUp                                   */
 /* -------------------------------------------------------------------------- */
 export const signUp = asyncHandler(async (req, res, next) => {
-  let { firstName, lastName, email, password, mobile, dob, recoveryEmail,role } =
-    req.body;
+  let {
+    firstName,
+    lastName,
+    email,
+    password,
+    mobile,
+    dob,
+    recoveryEmail,
+    role,
+  } = req.body;
   const exist = await userModel.findOne({ $or: [{ email }, { mobile }] });
   if (exist) {
     return next(new AppError("user already Exists"), 409);
@@ -22,7 +30,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
     mobile,
     dob,
     recoveryEmail,
-    role
+    role,
   });
   user
     ? res.status(200).json({ message: "done", user })
@@ -59,7 +67,8 @@ export const signIn = asyncHandler(async (req, res, next) => {
 /*                      update user data with conditions                      */
 /* -------------------------------------------------------------------------- */
 export const updateUser = asyncHandler(async (req, res, next) => {
-  const { email, mobile, recoveryEmail, dob, firstName, lastName } = req.body;
+  const { email, mobile, recoveryEmail, dob, firstName, lastName, userName } =
+    req.body;
   const user = await userModel.findById(req.user._id);
   if (!user) {
     return next(new AppError("user not found", 404));
@@ -71,16 +80,19 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     user.lastName = lastName;
   }
   user.userName = `${user.firstName} ${user.lastName}`;
+  if (userName) {
+    user.userName = userName;
+  }
 
   if (email || mobile) {
     const exist = await userModel.findOne({ $or: [{ email }, { mobile }] });
     if (exist) {
-      return next(
-        new AppError(
-          "provided email or phone are your current or used by another user"
-        ),
-        400
-      );
+      return exist.email === user.email || exist.mobile === user.mobile
+        ? next(new AppError("provided email or phone are your current"), 400)
+        : next(
+            new AppError("provided email or phone are used by another user"),
+            400
+          );
     }
     if (email) {
       user.email = email;

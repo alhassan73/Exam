@@ -11,7 +11,7 @@ const initApp = (app, express) => {
 
   dbConnection();
   app.use("/users", userRouter);
-  app.use("/companys", companyRouter);
+  app.use("/companies", companyRouter);
   // app.use("/uploads", express.static("uploads"));
   app.all("*", (req, res, next) => {
     const error = new AppError(

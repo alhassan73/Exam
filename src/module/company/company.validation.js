@@ -18,3 +18,14 @@ export const addCompany = {
       companyHR: generalField.id,
     }),
 };
+export const updateCompany = {
+  body: joi.object().required().keys({
+    description: joi.string().required(),
+    industry: joi.string().required(),
+    companyEmail: generalField.email,
+    address: joi.string(),
+  }),
+  params: joi.object().keys({
+    id: generalField.id.required(),
+  }),
+};
