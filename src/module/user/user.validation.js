@@ -13,6 +13,7 @@ export const signUp = {
       dob: joi.date(),
       recoveryEmail: joi.string().email(),
       mobile: joi.string().regex(/^(\+201|01|00201)[0-2,5]{1}[0-9]{8}/),
+      role: joi.string(),
     }),
 };
 export const signIn = {
@@ -36,11 +37,6 @@ export const updateUser = {
     dob: joi.date(),
     recoveryEmail: joi.string().email(),
     mobile: joi.string().regex(/^(\+201|01|00201)[0-2,5]{1}[0-9]{8}/),
-  }),
-};
-export const getAnyUserById = {
-  params: joi.object().keys({
-    id: generalField.id.required(),
   }),
 };
 export const updatePassword = {

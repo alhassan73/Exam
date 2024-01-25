@@ -7,7 +7,7 @@ import crypto from "crypto";
 /*                                   signUp                                   */
 /* -------------------------------------------------------------------------- */
 export const signUp = asyncHandler(async (req, res, next) => {
-  let { firstName, lastName, email, password, mobile, dob, recoveryEmail } =
+  let { firstName, lastName, email, password, mobile, dob, recoveryEmail,role } =
     req.body;
   const exist = await userModel.findOne({ $or: [{ email }, { mobile }] });
   if (exist) {
@@ -22,6 +22,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
     mobile,
     dob,
     recoveryEmail,
+    role
   });
   user
     ? res.status(200).json({ message: "done", user })
@@ -63,10 +64,10 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new AppError("user not found", 404));
   }
-  if (firstName !== undefined) {
+  if (firstName) {
     user.firstName = firstName;
   }
-  if (lastName !== undefined) {
+  if (lastName) {
     user.lastName = lastName;
   }
   user.userName = `${user.firstName} ${user.lastName}`;
@@ -104,7 +105,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
 export const deleteUser = asyncHandler(async (req, res, next) => {
   const user = await userModel.findByIdAndDelete(req.user._id);
   if (!user) {
-    return next(new AppError("user not found", 404));
+    return next(new AppError("user not found or not logged in", 404));
   }
   return res.status(200).json({ msg: "deleted" });
 });
@@ -114,7 +115,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
 export const getUser = asyncHandler(async (req, res, next) => {
   const user = await userModel.findById(req.user._id);
   if (!user) {
-    return next(new AppError("user not found", 404));
+    return next(new AppError("user not found or not logged in", 404));
   }
   return res.status(200).json({ msg: "done", user });
 });
@@ -134,9 +135,8 @@ export const getAnyUserById = asyncHandler(async (req, res, next) => {
 export const updatePassword = asyncHandler(async (req, res, next) => {
   const { oldPassword, newPassword } = req.body;
   const user = await userModel.findById(req.user._id);
-  console.log(req.user);
   if (!user) {
-    return next(new AppError("user not found", 404));
+    return next(new AppError("user not found or not logged in", 404));
   }
   const match = bcrypt.compareSync(oldPassword, user.password);
   if (!match) {
@@ -159,7 +159,8 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
   // Generate an OTP
   const otp = crypto.randomBytes(4).toString("hex"); // 4 digits OTP
   const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
-  user.otp = otp;
+  const hashedOtp = bcrypt.hashSync(otp, +process.env.SALT_ROUND);
+  user.otp = hashedOtp;
   user.otpExpiry = otpExpiry;
   await user.save();
   return res.status(200).json({ message: "done OTP generated", otp });
@@ -170,7 +171,12 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
 export const resetPassword = asyncHandler(async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
   const user = await userModel.findOne({ email });
-  if (!user || !user.otp || user.otp !== otp || Date.now() > user.otpExpiry) {
+  if (
+    !user ||
+    !user.otp ||
+    !bcrypt.compareSync(otp, user.otp) ||
+    Date.now() > user.otpExpiry
+  ) {
     return next(new AppError("Invalid or expired OTP", 400));
   }
 
@@ -182,3 +188,22 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({ message: "done" });
 });
+
+/* -------------------------------------------------------------------------- */
+/*                         getAccountsByRecoveryEmail                         */
+/* -------------------------------------------------------------------------- */
+export const getAccountsByRecoveryEmail = asyncHandler(
+  async (req, res, next) => {
+    const { recoveryEmail } = req.body;
+
+    const accounts = await userModel.find({ recoveryEmail });
+
+    if (accounts.length === 0) {
+      return next(
+        new AppError("No accounts found with the provided recovery email", 404)
+      );
+    }
+
+    return res.status(200).json({ accounts });
+  }
+);
